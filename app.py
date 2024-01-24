@@ -1,17 +1,16 @@
 import requests
 from bs4 import BeautifulSoup as bs
 from flask import Flask
-from models import db, connect_db, PlayerInfo, PlayerStats, PlayerSalary, AverageJoeStats, AverageJoeSalary
+from models import db, connect_db, PlayerInfo, PlayerStats
 from pprint import pprint
 
 app = Flask(__name__)
 app.app_context().push()
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///nba_app_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///overpaid'
 
 
 connect_db(app)
-
 
 all_info = {}
 
@@ -26,13 +25,13 @@ current_salaries = soup.find_all("td", {'class': 'right', 'data-stat': 'y1'})
 current_salaries = [td.text for td in current_salaries if td.text]
 
 players_with_salaries = dict(zip(player_names, current_salaries))
-
+pprint(players_with_salaries)
 stats_request = requests.get("https://www.basketball-reference.com/leagues/NBA_2024_per_game.html")
 
 soup_two = bs(stats_request.text, "html.parser")
 stats = soup_two.find_all("tr", {'class': 'full_table'})
-my_set = player_names
 
+my_set = set()
 
 for row in stats:
     name = row.find("td", {'data-stat': 'player'}).text
@@ -41,7 +40,6 @@ for row in stats:
     if name in my_set:
         continue
     my_set.add(name)
-
 
     all_info[name] = {
         'salary': players_with_salaries[name],
@@ -73,17 +71,19 @@ for row in stats:
             'position': row.find("td", {'data-stat': 'pos'}).text,
             'age' : row.find("td", {'data-stat': 'age'}).text,
             'team_id' : row.find("td", {'data-stat': 'team_id'}).text,
-    
+            'name': row.find("td", {'data-stat': 'player'}).text
+            
             }
             
             }
     for key, value in all_info.items():
    
         players_stats = PlayerStats(
-            games_played = value['stats']['games_played'] or 0,
-            points_per_game = value['stats']['points_per_game'] or 0,
-            assists_per_game = value['stats']['assists_per_game'] or 0,
-            turnovers_per_game = value['stats']['turnovers_per_game'] or 0,
+            position = value['stats'].get('position', 'no_position'),
+            games_played = value['stats'].get('games_played', 'no_games_played'),
+            points_per_game = value['stats'].get('points_per_game', 'no points per game'),
+            assists_per_game = value['stats'].get('assists_per_game', 'no assists'),
+            turnovers_per_game = value['stats'].get('turnovers_per_game', 'no turnovers'),
             defensive_rebounds_per_game = value['stats']['defensive_rebounds_per_game'] or 0,
             offensive_rebounds_per_game = value['stats']['offensive_rebounds_per_game'] or 0,
             total_rebounds_per_game = value['stats']['total_rebounds_per_game'] or 0,
@@ -106,14 +106,24 @@ for row in stats:
         db.session.add(players_stats)
         db.session.commit()
 
-        players_info = PlayerInfo(
-            players_name = value['stats'].get('name', 'no name'),
-            age = value['stats'].get('age', 'no age'),
-            position = value['stats'].get('positions', 'no position'),
-            team = value['stats'].get('team_id', 'no team')
-        )
-        db.session.add(players_info)
-        db.session.commit()
+        salary_string = players_with_salaries.get(name, '0')
+        salary_numeric = float(salary_string.replace('$', '').replace(',', ''))
+
+        players_name = value['stats'].get('name', 'no name')
+        existing_player = PlayerInfo.query.filter_by(players_name=players_name).first()
+        if existing_player is None:
+            players_info = PlayerInfo(
+                players_name=players_name,
+                age = value['stats'].get('age', 'no age'),
+                position = value['stats'].get('position', 'no position'),
+                team = value['stats'].get('team_id', 'no team'),
+                player_salary= salary_numeric
+                )
+            db.session.add(players_info)
+            db.session.commit()
+
+        
+
 
        
 
