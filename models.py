@@ -48,6 +48,7 @@ class AvgStats(db.Model):
     __tablename__ = "avg_stats"
 
     id = db.Column(db.Integer, primary_key=True)
+    avg_salary = db.Column(db.Float)
     position = db.Column(db.String(2), unique=True)
     avg_games_played = db.Column(db.Float)
     avg_points_per_game = db.Column(db.Float)

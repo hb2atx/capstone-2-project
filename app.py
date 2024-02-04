@@ -1,4 +1,5 @@
 import requests
+import pdb
 from bs4 import BeautifulSoup as bs
 from flask import Flask
 from models import db, connect_db, PlayerStats, AvgStats
@@ -60,7 +61,7 @@ for row in stats:
         'salary': players_with_salaries[name],
         'stats': {
             'name' : name,
-            'position' : row.find("td", {'data-stat': 'age'}).text,
+            'position' : row.find("td", {'data-stat': 'pos'}).text,
             'age' : row.find("td", {'data-stat': 'age'}).text,
             'team' : row.find("td", {'data-stat': 'team_id'}).text,
             'games_played': row.find("td", {'data-stat': "g"}).text,
@@ -99,7 +100,7 @@ for row in stats:
     
         if existing_player is None:
             players_stats = PlayerStats (
-
+    
             players_name = value['stats'].get('name') or 0,
             position = value['stats'].get('position') or 0,
             age = value['stats'].get('age') or 0,
@@ -129,12 +130,12 @@ for row in stats:
             points_per_game = value['stats'].get('points_per_game') or 0,
         )
         
-db.session.add(players_stats)
-db.session.commit()
+            db.session.add(players_stats)
+            db.session.commit()
+           
 
 
-##### Create Average Stats ##########
-player_stats_list = {}
+player_stats_list = all_info.items()
 positions = ["PG", "SG", "SF", "PF", "C"]
 all_position_averages = []
 
@@ -163,86 +164,107 @@ for position in positions:
     avg_avg_blocks_per_game = []
     avg_turnovers_per_game = []
     avg_points_per_game = []
-    
-    for player_stats in player_stats_list:
-        if player_stats.get('position') == position:
-            avg_games_played.append(player_stats.get('games_played', 0))
-            avg_points_per_game.append(player_stats.get('points_per_game', 0))
-            avg_games_started_per_game.append(player_stats.get('games_started', 0))
-            avg_minutes_per_game.append(player_stats.get('minutes_per_game', 0))
-            avg_field_goals_per_game.append(player_stats.get('field_goals_per_game', 0))
-            avg_field_goal_attempts_per_game.append(player_stats.get('field_goal_attempts_per_game', 0))
-            avg_field_goal_percentage.append(player_stats.get('field_goal_percentage', 0))
-            avg_three_point_field_goals_per_game.append(player_stats.get('three_point_field_goals_per_game', 0))
-            avg_three_point_field_goal_attempts_per_game.append(player_stats.get('three_point_field_goal_attempts_per_game', 0))
-            avg_three_point_percentage.append(player_stats.get('three_point_percentage', 0))
-            avg_two_point_field_goals_per_game.append(player_stats.get('two_point_field_goals_per_game', 0))
-            avg_two_point_field_goal_attempts_per_game.append(player_stats.get('two_point_field_goal_attempts_per_game', 0))
-            avg_two_point_field_goal_percentage.append(player_stats.get('two_point_field_goal_percentage', 0))
-            avg_free_throw_attempts_per_game.append(player_stats.get('free_throw_attempts_per_game', 0))
-            avg_free_throws_per_game.append(player_stats.get('free_throws_per_game', 0))
-            avg_offensive_rebounds_per_game.append(player_stats.get('offensive_rebounds_per_game', 0))
-            avg_defensive_rebounds_per_game.append(player_stats.get('defensive_rebounds_per_game', 0))
-            avg_total_rebounds_per_game.append(player_stats.get('total_rebounds_per_game', 0))
-            avg_assists_per_game.append(player_stats.get('assists_per_game', 0))
-            avg_steals_per_game.append(player_stats.get('steals_per_game', 0))
-            avg_avg_blocks_per_game.append(player_stats.get('steals_per_game', 0))
-            avg_turnovers_per_game.append(player_stats.get('turnovers_per_game', 0))
-            avg_points_per_game.append(player_stats.get('points_per_game', 0))
-            
+    avg_salary = []
+
+    for key, value in all_info.items():
+        salary = players_with_salaries.get(value['stats']['name'])
+        salary_str = players_with_salaries.get(value['stats']['name'])
+        salary = float(salary_str.replace('$', '').replace(',', '')) if salary_str else None
+
+        if value['stats'].get('position') == position:
+
+            avg_salary.append(salary)
+            avg_games_played.append(round(float(value['stats'].get('games_played', 0))))
+            avg_points_per_game.append(round(float(value['stats'].get('points_per_game', 0))))
+            avg_games_started_per_game.append(round(float(value['stats'].get('games_started', 0))))
+            avg_minutes_per_game.append(round(float(value['stats'].get('minutes_per_game', 0))))
+            avg_field_goals_per_game.append(round(float(value['stats'].get('field_goals_per_game', 0))))
+            avg_field_goal_attempts_per_game.append(round(float(value['stats'].get('field_goal_attempts_per_game', 0))))
+            avg_field_goal_percentage.append(round(float(value['stats'].get('field_goal_percentage', 0))))
+            avg_three_point_field_goals_per_game.append(round(float(value['stats'].get('three_point_field_goals_per_game', 0))))
+            avg_three_point_field_goal_attempts_per_game.append(round(float(value['stats'].get('three_point_field_goal_attempts_per_game', 0))))
+            three_point_percentage_value = value['stats'].get('three_point_percentage', '')
+            if three_point_percentage_value != '':
+                avg_three_point_percentage.append(round(float(three_point_percentage_value)))
+            else:
+                avg_three_point_percentage.append(0)
+            avg_two_point_field_goals_per_game.append(round(float(value['stats'].get('two_point_field_goals_per_game', 0))))
+            avg_two_point_field_goal_attempts_per_game.append(round(float(value['stats'].get('two_point_field_goal_attempts_per_game', 0))))
+            two_point_percentage_value = value['stats'].get('two_point_field_goal_percentage', '')
+            if two_point_percentage_value != '':
+                avg_two_point_field_goal_percentage.append(round(float(two_point_percentage_value)))
+            else:
+                avg_two_point_field_goal_percentage.append(0)
+            avg_free_throw_attempts_per_game.append(round(float(value['stats'].get('free_throw_attempts_per_game', 0))))
+            avg_free_throws_per_game.append(round(float(value['stats'].get('free_throws_per_game', 0))))
+            avg_offensive_rebounds_per_game.append(round(float(value['stats'].get('offensive_rebounds_per_game', 0))))
+            avg_defensive_rebounds_per_game.append(round(float(value['stats'].get('defensive_rebounds_per_game', 0))))
+            avg_total_rebounds_per_game.append(round(float(value['stats'].get('total_rebounds_per_game', 0))))
+            avg_assists_per_game.append(round(float(value['stats'].get('assists_per_game', 0))))
+            avg_steals_per_game.append(round(float(value['stats'].get('steals_per_game', 0))))
+            avg_avg_blocks_per_game.append(round(float(value['stats'].get('blocks_per_game', 0))))
+            avg_turnovers_per_game.append(round(float(value['stats'].get('turnovers_per_game', 0))))
+
+    avg_salary_value = sum(avg_salary) / len(avg_salary) if avg_salary else 0   
     avg_games_played_value = sum(avg_games_played) / len(avg_games_played) if avg_games_played else 0
-    avg_points_per_game_value = sum(avg_points_per_game) / len(avg_points_per_game) if avg_points_per_game else 0
     avg_games_started_per_game_value = sum(avg_games_started_per_game) / len(avg_games_started_per_game) if avg_games_started_per_game else 0
     avg_minutes_per_game_value = sum(avg_minutes_per_game) / len(avg_minutes_per_game) if avg_minutes_per_game else 0
+    avg_points_per_game_value = sum(avg_points_per_game) / len(avg_points_per_game) if avg_points_per_game else 0
     avg_field_goals_per_game_value = sum(avg_field_goals_per_game) / len(avg_field_goals_per_game) if avg_field_goals_per_game else 0
-    avg_field_goal_attempts_per_game = sum(avg_field_goal_attempts_per_game) / len(avg_field_goal_attempts_per_game) if avg_field_goal_attempts_per_game else 0       
-    avg_field_goal_percentage =sum(avg_field_goal_percentage) / len(avg_field_goal_percentage) if avg_field_goal_percentage else 0
-    avg_three_point_field_goals_per_game = sum(avg_three_point_field_goals_per_game) / len(avg_three_point_field_goals_per_game) if avg_three_point_field_goals_per_game else 0
-    avg_three_point_field_goal_attempts_per_game = sum(avg_three_point_field_goal_attempts_per_game) / len(avg_three_point_field_goal_attempts_per_game) if avg_three_point_field_goal_attempts_per_game else 0          
-    avg_three_point_percentage = sum(avg_three_point_percentage) / len(avg_three_point_percentage) if avg_three_point_percentage else 0
-    avg_two_point_field_goals_per_game = sum(avg_two_point_field_goals_per_game) / len(avg_two_point_field_goals_per_game) if avg_two_point_field_goals_per_game else 0              
-    avg_two_point_field_goal_attempts_per_game = sum(avg_two_point_field_goal_attempts_per_game) / len(avg_two_point_field_goal_attempts_per_game) if avg_two_point_field_goal_attempts_per_game else 0
-    avg_two_point_field_goal_percentage = sum(avg_two_point_field_goal_percentage) / len(avg_two_point_field_goal_percentage) if avg_two_point_field_goal_percentage else 0
-    avg_free_throw_attempts_per_game = sum(avg_free_throw_attempts_per_game) / len(avg_free_throw_attempts_per_game) if avg_free_throw_attempts_per_game else 0                  
-    avg_free_throws_per_game = sum(avg_free_throws_per_game) / len(avg_free_throws_per_game) if avg_free_throws_per_game else 0
-    avg_offensive_rebounds_per_game = sum(avg_offensive_rebounds_per_game) / len(avg_offensive_rebounds_per_game) if avg_offensive_rebounds_per_game else 0
-    avg_defensive_rebounds_per_game = sum(avg_defensive_rebounds_per_game) / len(avg_defensive_rebounds_per_game) if avg_defensive_rebounds_per_game else 0              
-    avg_total_rebounds_per_game = sum(avg_total_rebounds_per_game) / len(avg_total_rebounds_per_game) if avg_total_rebounds_per_game else 0
-    avg_assists_per_game = sum(avg_assists_per_game) / len(avg_assists_per_game) if avg_assists_per_game else 0
-    avg_steals_per_game = sum(avg_steals_per_game) / len(avg_steals_per_game) if avg_steals_per_game else 0
-    avg_avg_blocks_per_game = sum(avg_avg_blocks_per_game) / len(avg_avg_blocks_per_game) if avg_avg_blocks_per_game else 0
-    avg_turnovers_per_game = sum(avg_turnovers_per_game) / len(avg_turnovers_per_game) if avg_turnovers_per_game else 0
-    avg_points_per_game = sum(avg_points_per_game) / len(avg_points_per_game) if avg_points_per_game else 0
-            
+    avg_field_goal_attempts_per_game_value = sum(avg_field_goal_attempts_per_game) / len(avg_field_goal_attempts_per_game) if avg_field_goal_attempts_per_game else 0       
+    avg_field_goal_percentage_value = sum(avg_field_goal_percentage) / len(avg_field_goal_percentage) if avg_field_goal_percentage else 0
+    avg_three_point_field_goals_per_game_value = sum(avg_three_point_field_goals_per_game) / len(avg_three_point_field_goals_per_game) if avg_three_point_field_goals_per_game else 0
+    avg_three_point_field_goal_attempts_per_game_value = sum(avg_three_point_field_goal_attempts_per_game) / len(avg_three_point_field_goal_attempts_per_game) if avg_three_point_field_goal_attempts_per_game else 0          
+    avg_three_point_percentage_value = sum(avg_three_point_percentage) / len(avg_three_point_percentage) if avg_three_point_percentage else 0
+    avg_two_point_field_goals_per_game_value = sum(avg_two_point_field_goals_per_game) / len(avg_two_point_field_goals_per_game) if avg_two_point_field_goals_per_game else 0              
+    avg_two_point_field_goal_attempts_per_game_value = sum(avg_two_point_field_goal_attempts_per_game) / len(avg_two_point_field_goal_attempts_per_game) if avg_two_point_field_goal_attempts_per_game else 0
+    avg_two_point_field_goal_percentage_value = sum(avg_two_point_field_goal_percentage) / len(avg_two_point_field_goal_percentage) if avg_two_point_field_goal_percentage else 0
+    avg_free_throw_attempts_per_game_value = sum(avg_free_throw_attempts_per_game) / len(avg_free_throw_attempts_per_game) if avg_free_throw_attempts_per_game else 0                  
+    avg_free_throws_per_game_value = sum(avg_free_throws_per_game) / len(avg_free_throws_per_game) if avg_free_throws_per_game else 0
+    avg_offensive_rebounds_per_game_value = sum(avg_offensive_rebounds_per_game) / len(avg_offensive_rebounds_per_game) if avg_offensive_rebounds_per_game else 0
+    avg_defensive_rebounds_per_game_value = sum(avg_defensive_rebounds_per_game) / len(avg_defensive_rebounds_per_game) if avg_defensive_rebounds_per_game else 0              
+    avg_total_rebounds_per_game_value = sum(avg_total_rebounds_per_game) / len(avg_total_rebounds_per_game) if avg_total_rebounds_per_game else 0
+    avg_assists_per_game_value = sum(avg_assists_per_game) / len(avg_assists_per_game) if avg_assists_per_game else 0
+    avg_steals_per_game_value = sum(avg_steals_per_game) / len(avg_steals_per_game) if avg_steals_per_game else 0
+    avg_avg_blocks_per_game_value = sum(avg_avg_blocks_per_game) / len(avg_avg_blocks_per_game) if avg_avg_blocks_per_game else 0
+    avg_turnovers_per_game_value = sum(avg_turnovers_per_game) / len(avg_turnovers_per_game) if avg_turnovers_per_game else 0
+    avg_points_per_game_value = sum(avg_points_per_game) / len(avg_points_per_game) if avg_points_per_game else 0
+
     position_averages = AvgStats (
-        
+
+        avg_salary=avg_salary_value,
         position=position,
-        avg_games_played=avg_games_played,
-        avg_points_per_game=avg_points_per_game_value,
+        avg_games_played=avg_games_played_value,
         avg_games_started_per_game=avg_games_started_per_game_value,
+        avg_points_per_game=avg_points_per_game_value,
         avg_minutes_per_game=avg_minutes_per_game_value,
         avg_field_goals_per_game=avg_field_goals_per_game_value,
-        avg_field_goal_attempts_per_game=avg_field_goal_attempts_per_game,
-        avg_field_goal_percentage=avg_field_goal_percentage,
-        avg_three_point_field_goals_per_game=avg_three_point_field_goals_per_game,
-        avg_three_point_percentage=avg_three_point_percentage,
-        avg_two_point_field_goals_per_game=avg_two_point_field_goals_per_game,
-        avg_two_point_field_goal_attempts_per_game=avg_two_point_field_goal_attempts_per_game,
-        avg_two_point_field_goal_percentage=avg_two_point_field_goal_percentage,
-        avg_free_throw_attempts_per_game=avg_free_throw_attempts_per_game,
-        avg_free_throws_per_game=avg_free_throws_per_game,
-        avg_offensive_rebounds_per_game=avg_offensive_rebounds_per_game,
-        avg_defensive_rebounds_per_game=avg_defensive_rebounds_per_game,
-        avg_total_rebounds_per_game=avg_total_rebounds_per_game,
-        avg_assists_per_game=avg_assists_per_game,
-        avg_steals_per_game=avg_steals_per_game,
-        avg_avg_blocks_per_game=avg_avg_blocks_per_game,
-        avg_turnovers_per_game=avg_turnovers_per_game,)
-    
+        avg_field_goal_attempts_per_game=avg_field_goal_attempts_per_game_value,
+        avg_field_goal_percentage=avg_field_goal_percentage_value,
+        avg_three_point_field_goals_per_game=avg_three_point_field_goals_per_game_value,
+        avg_three_point_percentage=avg_three_point_percentage_value,
+        avg_two_point_field_goals_per_game=avg_two_point_field_goals_per_game_value,
+        avg_two_point_field_goal_attempts_per_game=avg_two_point_field_goal_attempts_per_game_value,
+        avg_two_point_field_goal_percentage=avg_two_point_field_goal_percentage_value,
+        avg_free_throw_attempts_per_game=avg_free_throw_attempts_per_game_value,
+        avg_free_throws_per_game=avg_free_throws_per_game_value,
+        avg_offensive_rebounds_per_game=avg_offensive_rebounds_per_game_value,
+        avg_defensive_rebounds_per_game=avg_defensive_rebounds_per_game_value,
+        avg_total_rebounds_per_game=avg_total_rebounds_per_game_value,
+        avg_assists_per_game=avg_assists_per_game_value,
+        avg_steals_per_game=avg_steals_per_game_value,
+        avg_blocks_per_game=avg_avg_blocks_per_game_value,
+        avg_turnovers_per_game=avg_turnovers_per_game_value,
+    )
     all_position_averages.append(position_averages)
-            
+    
 db.session.add_all(all_position_averages)
 db.session.commit()
+
+
+# curl -v -X POST "http://localhost:3001/auth/register" -d '{"username": "kklovessummer", "password": "myPassword", "email": "kkmail@mail.com", "firstName": "kalani", "lastName": "kill"}' -H 'content-type: application/json'
+
+
 
 
 
@@ -263,8 +285,6 @@ db.session.commit()
   
   
 
-   
-    
 
 
 
