@@ -27,7 +27,6 @@ function LoginForm({ login }) {
     }
   }
 
-  /** Update form data field */
   function handleChange(evt) {
     const { name, value } = evt.target;
     setFormData(l => ({ ...l, [name]: value }));

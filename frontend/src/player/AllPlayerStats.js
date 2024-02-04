@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import OverPaidApi from './api/api';
+import React, { useEffect, useState } from 'react';
+import OverPaidApi from '../api/api';
 
 function AllPlayerStats() {
   const [allPlayerStats, setAllPlayerStats] = useState([]);
@@ -9,7 +9,6 @@ function AllPlayerStats() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch all player stats
         const playerStats = await OverPaidApi.getAllPlayerStats();
         setAllPlayerStats(playerStats);
         setLoading(false);
@@ -30,8 +29,7 @@ function AllPlayerStats() {
   if (error) {
     return <div>{error}</div>;
   }
-
-  // Render your component using allPlayerStats
+  
   return (
     <div>
       <h1>All Player Stats</h1>

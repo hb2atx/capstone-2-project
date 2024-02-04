@@ -1,6 +1,6 @@
 // Import necessary modules
-import React, { useState, useEffect } from 'react';
-import OverPaidApi from './api/api';
+import React, { useEffect, useState } from 'react';
+import OverPaidApi from '../api/api';
 
 function PlayerStatsByName({ match }) {
   const [playerStats, setPlayerStats] = useState({});

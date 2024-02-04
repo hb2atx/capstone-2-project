@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate, Routes as Route } from "react-router-dom";
+import { Routes as Route, NavLink, Navigate  } from "react-router-dom";
 
 import LoginForm from "../auth/LoginForm";
 import SignupForm from "../auth/SignupForm";
@@ -15,7 +15,7 @@ import PlayerStatsByName from "../player/PlayerStatsByName";
 
 
 
-function Routes({ login, signup, logout, currentUser }) {
+function Routes({ login, signup }) {
       
     return (
         <div className="pt-5">
@@ -69,7 +69,7 @@ function Routes({ login, signup, logout, currentUser }) {
                     </Route>
                 </li>
 
-            {/* Redirect to homepage */}
+            
                 <Navigate to="/" />
 
             </Routes>
